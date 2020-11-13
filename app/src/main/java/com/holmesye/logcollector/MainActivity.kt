@@ -15,6 +15,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         Log.d(TAG, "onCreate: 大厦上发的是打发士大夫")
-        var index = 1/0
+        Log.e("MainActivity", "onCreate: error 大厦上发的是打发士大夫")
+        try {
+            var index = 1/0
+        }catch (e:ArithmeticException){
+            e.printStackTrace()
+        }
     }
 }

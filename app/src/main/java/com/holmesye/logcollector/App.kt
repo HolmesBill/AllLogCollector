@@ -11,6 +11,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         LogcatHelper.getInstance().init(applicationContext)
+        LogcatHelper.getInstance().tagsFilter(mutableListOf("holmesye"))
         LogcatHelper.getInstance().start()
     }
 }

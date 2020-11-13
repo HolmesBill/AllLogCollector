@@ -117,8 +117,9 @@ public class DateUtil {
      * @return 日期字符串
      */
     public static String convDate2Str(Date date, String format) {
-        if (date == null)
+        if (date == null) {
             return "";
+        }
         return new SimpleDateFormat(format).format(date);
     }
 
@@ -151,8 +152,9 @@ public class DateUtil {
      * @return
      */
     public static String getStrTime(String timeStamp, String format) {
-        if (TextUtils.isEmpty(timeStamp))
+        if (TextUtils.isEmpty(timeStamp)) {
             return "";
+        }
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         long l = Long.valueOf(timeStamp);
         String timeString = sdf.format(new Date(l));//单位秒
