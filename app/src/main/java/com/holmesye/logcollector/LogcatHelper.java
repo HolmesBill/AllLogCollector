@@ -17,13 +17,20 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class LogcatHelper {
     private Context mContext;
 
     private static LogcatHelper mInstance;
-    private LogDumper mLogDumper;
+
+    private List<String> tags = new ArrayList<>();
+
+    private List<LogDumper> logDumperList = new ArrayList<>();
 
     /**
      * 例子："logcat holmesye:V MainActivity:V *:S | grep com.holmesye.logcollector"
@@ -49,42 +56,59 @@ public class LogcatHelper {
     }
 
     public void tagsFilter(@NonNull List<String> tags) {
+//        StringBuilder sf = new StringBuilder();
+//        sf.append("logcat");
+//        for (String tag : tags) {
+//            sf.append(" ").append(tag).append(":V");
+//        }
+//        sf.append(" *:S | grep ").append(mContext.getPackageName());
+//        cmds = sf.toString();
 
-        StringBuilder sf = new StringBuilder();
-        sf.append("logcat");
-
-        for (String tag : tags) {
-            sf.append(" ").append(tag).append(":V");
-        }
-
-        sf.append(" *:S | grep ").append(mContext.getPackageName());
-
-        cmds = sf.toString();
+        this.tags = tags;
     }
 
     public void start() {
-        if (mLogDumper == null) {
-            mLogDumper = new LogDumper(String.valueOf(android.os.Process.myPid()));
+        for (String tag : tags) {
+            LogDumper dumper = new LogDumper(tag);
+            logDumperList.add(dumper);
         }
-        mLogDumper.start();
+
+        cleanLog();
+
+        //线程池启动
+        ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+        for (LogDumper dumper : logDumperList) {
+            cachedThreadPool.execute(dumper);
+        }
+    }
+
+    private void cleanLog() {
+        //清除日志的缓存
+        try {
+            String cleanCMD = "logcat -c";
+            Runtime.getRuntime().exec(cleanCMD);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void stop() {
-        if (mLogDumper != null) {
-            mLogDumper.stopLogs();
-            mLogDumper = null;
-        }
+//        if (mLogDumper != null) {
+//            mLogDumper.stopLogs();
+//            mLogDumper = null;
+//        }
     }
 
-    private class LogDumper extends Thread {
+    private class LogDumper implements Runnable {
 
-        private String pid;
+        private String cmd;
+        private String tag;
 
         private boolean mRunning = true;
         private BufferedReader mReader;
 
-        public LogDumper(String pid) {
-            this.pid = pid;
+        public LogDumper(String tag) {
+            this.tag = tag;
             initStart();
         }
 
@@ -94,7 +118,12 @@ public class LogcatHelper {
 //                String cmds = "logcat holmesye:V MainActivity:V *:S | grep com.holmesye.logcollector";//打印所有日志信息
 //                String cmds = "logcat holmesye:V MainActivity:V *:S";//打印所有日志信息
 //                String cmds = "logcat | find com.holmesye.logcollector";//打印所有日志信息
-                Process logcatProc = Runtime.getRuntime().exec(cmds);
+
+                cmd = "logcat" +
+                        " " + tag + ":V" +
+                        " *:S | grep " + mContext.getPackageName();
+
+                Process logcatProc = Runtime.getRuntime().exec(cmd);
                 mReader = new BufferedReader(new InputStreamReader(logcatProc.getInputStream()), 1024);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -120,8 +149,8 @@ public class LogcatHelper {
 //                        file.delete();
 //                        LogcatHelper.this.start();
 //                    }
-                    if (line.contains(pid)) {
-                        String time = DateUtil.getCurrentTime(DateUtil.DateFormatConstant.GL_TIMESTAMP_FORMAT);
+                    if (line.contains(tag)) {
+                        String time = DateUtil.getCurrentTime(DateUtil.DateFormatConstant.GL_TIME_FORMAT);
 //                        Toast.makeText(, "", Toast.LENGTH_SHORT).show();
 //                        output.write((time + "  " + line + "\n").getBytes());
                         System.out.println(line + "   time   " + time);

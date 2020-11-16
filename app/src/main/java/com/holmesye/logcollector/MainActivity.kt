@@ -16,10 +16,10 @@ class MainActivity : AppCompatActivity() {
 
         Log.d(TAG, "onCreate: 大厦上发的是打发士大夫")
         Log.e("MainActivity", "onCreate: error 大厦上发的是打发士大夫")
-        try {
-            var index = 1/0
-        }catch (e:ArithmeticException){
-            e.printStackTrace()
-        }
+//        try {
+//            var index = 1/0
+//        }catch (e:ArithmeticException){
+//            e.printStackTrace()
+//        }
     }
 }

@@ -6,6 +6,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * NAME：YONG_
@@ -77,8 +78,8 @@ public class DateUtil {
      * @param format 时间格式
      */
     public static String getCurrentTime(String format) {
-        SimpleDateFormat formatter = new SimpleDateFormat(format);
-        Date curDate = new Date(System.currentTimeMillis());//获取当前时间
+        SimpleDateFormat formatter = new SimpleDateFormat(format, Locale.CHINA);
+        Date curDate = new Date();//获取当前时间
         String str = formatter.format(curDate);
         return str;
     }
