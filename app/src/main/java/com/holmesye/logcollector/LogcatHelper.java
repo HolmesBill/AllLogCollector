@@ -19,9 +19,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class LogcatHelper {
     private Context mContext;
@@ -32,10 +35,11 @@ public class LogcatHelper {
 
     private List<LogDumper> logDumperList = new ArrayList<>();
 
+    private ConcurrentHashMap<String, LogBean> logMap = new ConcurrentHashMap<>();
+
     /**
      * 例子："logcat holmesye:V MainActivity:V *:S | grep com.holmesye.logcollector"
      */
-    private String cmds = null;
 
     public static LogcatHelper getInstance() {
         if (mInstance == null) {
@@ -75,9 +79,16 @@ public class LogcatHelper {
 
         cleanLog();
 
-        //线程池启动
-        ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
-        for (LogDumper dumper : logDumperList) {
+//        //线程池启动
+//        ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+//        for (LogDumper dumper : logDumperList) {
+//            cachedThreadPool.execute(dumper);
+//        }
+
+        ExecutorService cachedThreadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                60L, TimeUnit.SECONDS,
+                new SynchronousQueue<Runnable>());
+                for (LogDumper dumper : logDumperList) {
             cachedThreadPool.execute(dumper);
         }
     }
@@ -99,6 +110,9 @@ public class LogcatHelper {
 //        }
     }
 
+    /**
+     * 一个线程启动一个logcat（暂定）
+     */
     private class LogDumper implements Runnable {
 
         private String cmd;
@@ -122,13 +136,11 @@ public class LogcatHelper {
                 cmd = "logcat" +
                         " " + tag + ":V" +
                         " *:S | grep " + mContext.getPackageName();
-
                 Process logcatProc = Runtime.getRuntime().exec(cmd);
                 mReader = new BufferedReader(new InputStreamReader(logcatProc.getInputStream()), 1024);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
 
         public void stopLogs() {
@@ -151,10 +163,9 @@ public class LogcatHelper {
 //                    }
                     if (line.contains(tag)) {
                         String time = DateUtil.getCurrentTime(DateUtil.DateFormatConstant.GL_TIME_FORMAT);
-//                        Toast.makeText(, "", Toast.LENGTH_SHORT).show();
-//                        output.write((time + "  " + line + "\n").getBytes());
-                        System.out.println(line + "   time   " + time);
-
+                        String logContent = line.split(tag)[1];
+//                        System.out.println("log Content is " + logContent + "   time   " + time);
+                        logMap.put(tag, new LogBean(logContent, time));
                     }
                 }
             } catch (Exception e) {
@@ -170,6 +181,9 @@ public class LogcatHelper {
 
             }
         }
+
+
     }
+
 
 }
