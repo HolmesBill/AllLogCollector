@@ -6,13 +6,33 @@ package com.holmesye.logcollector;
  * @Description : log 的bean类
  */
 public class LogBean {
-    public LogBean(String logContent, String logTime) {
+    public LogBean(String logContent, String logTime, String logType, String tag) {
         this.logContent = logContent;
         this.logTime = logTime;
+        this.logType = logType;
+        this.tag = tag;
     }
 
     private String logContent;
     private String logTime;
+    private String logType;
+    private String tag;
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public String getLogType() {
+        return logType;
+    }
+
+    public void setLogType(String logType) {
+        this.logType = logType;
+    }
 
     public String getLogContent() {
         return logContent;
@@ -35,6 +55,8 @@ public class LogBean {
         return "LogBean{" +
                 "logContent='" + logContent + '\'' +
                 ", logTime='" + logTime + '\'' +
+                ", logType='" + logType + '\'' +
+                ", tag='" + tag + '\'' +
                 '}';
     }
 }

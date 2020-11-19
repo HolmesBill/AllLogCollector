@@ -87,8 +87,8 @@ public class LogcatHelper {
 
         ExecutorService cachedThreadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                 60L, TimeUnit.SECONDS,
-                new SynchronousQueue<Runnable>());
-                for (LogDumper dumper : logDumperList) {
+                new SynchronousQueue<>());
+        for (LogDumper dumper : logDumperList) {
             cachedThreadPool.execute(dumper);
         }
     }
@@ -136,8 +136,8 @@ public class LogcatHelper {
                 cmd = "logcat" +
                         " " + tag + ":V" +
                         " *:S | grep " + mContext.getPackageName();
-                Process logcatProc = Runtime.getRuntime().exec(cmd);
-                mReader = new BufferedReader(new InputStreamReader(logcatProc.getInputStream()), 1024);
+                Process logcatProcess = Runtime.getRuntime().exec(cmd);
+                mReader = new BufferedReader(new InputStreamReader(logcatProcess.getInputStream()), 1024);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -165,7 +165,7 @@ public class LogcatHelper {
                         String time = DateUtil.getCurrentTime(DateUtil.DateFormatConstant.GL_TIME_FORMAT);
                         String logContent = line.split(tag)[1];
 //                        System.out.println("log Content is " + logContent + "   time   " + time);
-                        logMap.put(tag, new LogBean(logContent, time));
+//                        logMap.put(tag, new LogBean(logContent, time));
                     }
                 }
             } catch (Exception e) {

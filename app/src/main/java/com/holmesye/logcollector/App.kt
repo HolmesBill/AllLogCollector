@@ -10,8 +10,9 @@ import android.app.Application
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        LogcatHelper.getInstance().init(applicationContext)
-        LogcatHelper.getInstance().tagsFilter(mutableListOf("holmesye","MainActivity"))
-        LogcatHelper.getInstance().start()
+//        LogcatHelper.getInstance().init(applicationContext)
+//        LogcatHelper.getInstance().tagsFilter(mutableListOf("holmesye","MainActivity"))
+//        LogcatHelper.getInstance().start()
+        LogcatHelperSingleThread.init(applicationContext).tagsFilter(mutableListOf("holmesye","MainActivity")).start()
     }
 }
