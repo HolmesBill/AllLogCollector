@@ -13,6 +13,9 @@ class App : Application() {
 //        LogcatHelper.getInstance().init(applicationContext)
 //        LogcatHelper.getInstance().tagsFilter(mutableListOf("holmesye","MainActivity"))
 //        LogcatHelper.getInstance().start()
-        LogcatHelperSingleThread.init(applicationContext).tagsFilter(mutableListOf("holmesye","MainActivity")).start()
+        LogcatHelperSingleThread.init(applicationContext)
+            .tagsFilter(mutableListOf("holmesye", "MainActivity"))
+
+            .start()
     }
 }

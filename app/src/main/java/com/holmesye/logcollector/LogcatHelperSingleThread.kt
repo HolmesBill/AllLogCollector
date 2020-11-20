@@ -10,6 +10,7 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import kotlin.concurrent.thread
 
 /**
  * @author yejj
@@ -20,8 +21,9 @@ object LogcatHelperSingleThread {
 
     private var mContext: Context? = null
     private var tags: List<String> = ArrayList()
-
     private var logList = mutableListOf<LogBean>()
+
+    var flagSave = false
 
     fun init(context: Context?): LogcatHelperSingleThread {
         mContext = context
@@ -44,6 +46,8 @@ object LogcatHelperSingleThread {
             SynchronousQueue()
         )
         cachedThreadPool.execute(dumper)
+        //写个操作机
+
     }
 
     private fun initCmd(tags: List<String>): String {
@@ -51,7 +55,10 @@ object LogcatHelperSingleThread {
         tags.forEach {
             cmd += "$it:V "
         }
-        cmd += "*:S | grep ${mContext?.packageName}"
+        if (tags.isNotEmpty()) {
+            cmd += "*:S "
+        }
+        cmd += "| grep ${mContext?.packageName}"
         return cmd
     }
 
@@ -66,7 +73,7 @@ object LogcatHelperSingleThread {
     }
 
     /**
-     * 一个线程启动一个logcat（暂定）
+     * 利用线程收集日志
      */
     class LogDumper(private val cmd: String) : Runnable {
         private var mRunning = true
@@ -124,7 +131,6 @@ object LogcatHelperSingleThread {
             }
         }
     }
-
 
 }
 
