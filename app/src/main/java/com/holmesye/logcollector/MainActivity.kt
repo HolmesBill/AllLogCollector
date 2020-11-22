@@ -14,8 +14,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Log.d(TAG, "onCreate: 大厦上发的是打发士大夫")
-        Log.e("MainActivity", "onCreate: error 大厦上发的是打发士大夫")
+        Log.d(TAG, "onCreate: test123")
+        Log.e("MainActivity", "onCreate: 123test")
 //        try {
 //            var index = 1/0
 //        }catch (e:ArithmeticException){

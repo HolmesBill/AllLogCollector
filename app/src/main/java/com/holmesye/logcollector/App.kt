@@ -1,6 +1,7 @@
 package com.holmesye.logcollector
 
 import android.app.Application
+import com.holmesye.logcollector.save.DefaultLogSaveInDB
 
 /**
  * @author yejj
@@ -15,7 +16,7 @@ class App : Application() {
 //        LogcatHelper.getInstance().start()
         LogcatHelperSingleThread.init(applicationContext)
             .tagsFilter(mutableListOf("holmesye", "MainActivity"))
-
+            .setOperations( mutableListOf(DefaultLogSaveInDB(this)))
             .start()
     }
 }
