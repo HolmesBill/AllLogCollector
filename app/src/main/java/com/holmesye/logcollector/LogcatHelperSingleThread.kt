@@ -11,7 +11,6 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import kotlin.concurrent.thread
 
 /**
  * @author yejj
@@ -133,7 +132,9 @@ object LogcatHelperSingleThread {
                 while (mRunning) {
                     var line = ""
                     mReader?.let {
-                        line = mReader!!.readLine()
+                        if(mReader != null){
+                            line = mReader!!.readLine()
+                        }
                     }
 
                     if (line.isNotEmpty()) {
