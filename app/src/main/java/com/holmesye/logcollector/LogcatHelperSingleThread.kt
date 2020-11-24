@@ -2,7 +2,8 @@ package com.holmesye.logcollector
 
 import android.annotation.SuppressLint
 import android.content.Context
-import com.holmesye.logcollector.save.LogcatSaveHandler
+import android.util.Log
+import com.holmesye.logcollector.save.LogcatHandlerTask
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -24,12 +25,18 @@ object LogcatHelperSingleThread {
     private var logList = mutableListOf<LogBean>()
 
     private var logCollectingThreadPool: ThreadPoolExecutor? = null //线程池：只做日志收集
-    private var handlerScheduledThreadPool: ScheduledThreadPoolExecutor? = null //处理操作线程池
+    private var mTaskScheduledThreadPool: ScheduledThreadPoolExecutor? = null //处理操作线程池
 
-    private var operationList: MutableList<LogcatSaveHandler> = mutableListOf()
+    private var mTaskList: MutableList<LogcatHandlerTask> = mutableListOf()
 
-    fun setOperations(operations: MutableList<LogcatSaveHandler>): LogcatHelperSingleThread {
-        this.operationList = operations
+    private var logDumper: LogDumper? = null
+
+    private var TAG = "logcat"
+
+    private var isTaskRunning = true
+
+    fun setOperations(operations: MutableList<LogcatHandlerTask>): LogcatHelperSingleThread {
+        this.mTaskList = operations
         return this
     }
 
@@ -45,11 +52,12 @@ object LogcatHelperSingleThread {
     }
 
     fun start() {
-        val dumper = LogDumper(initCmd(tags))
+        logDumper = LogDumper(initCmd(tags))
+
         //每次启动都清除之前的日志
         cleanLog()
-
-        logCollectingThreadPool?.execute(dumper)
+        //开始日志收集
+        logCollectingThreadPool?.execute(logDumper)
         //写个定时操作机
         handlerLogcat()
     }
@@ -64,21 +72,20 @@ object LogcatHelperSingleThread {
             SynchronousQueue()
         )
 
-        handlerScheduledThreadPool = ScheduledThreadPoolExecutor(5)
+        mTaskScheduledThreadPool = ScheduledThreadPoolExecutor(5)
     }
 
     private fun handlerLogcat() {
-        if (operationList.isEmpty()) {
+        if (mTaskList.isEmpty()) {
             return
         }
 
-        handlerScheduledThreadPool?.scheduleWithFixedDelay(
-            HandlerDumper(operationList),
+        mTaskScheduledThreadPool?.scheduleWithFixedDelay(
+            HandlerDumper(mTaskList),
             1000,
             1000,
             TimeUnit.MILLISECONDS
         )
-
     }
 
     private fun initCmd(tags: List<String>): String {
@@ -103,10 +110,15 @@ object LogcatHelperSingleThread {
         }
     }
 
-    class HandlerDumper(private var operationList: MutableList<LogcatSaveHandler>) : Runnable {
+    class HandlerDumper(private var operationList: MutableList<LogcatHandlerTask>) : Runnable {
         override fun run() {
-            synchronized(logList){
-                println("开始执行任务集")
+
+            if(!isTaskRunning){
+                return
+            }
+
+            synchronized(logList) {
+//                println("开始执行任务集")
                 val indexList = mutableListOf<LogBean>()
                 indexList.addAll(logList)
                 logList.clear()
@@ -126,20 +138,21 @@ object LogcatHelperSingleThread {
 
         @SuppressLint("SimpleDateFormat")
         override fun run() {
+            var line = ""
             try {
                 val logcatProcess = Runtime.getRuntime().exec(cmd)
                 mReader = BufferedReader(InputStreamReader(logcatProcess.inputStream), 1024)
                 while (mRunning) {
-                    var line = ""
+
                     mReader?.let {
-                        if(mReader != null){
+                        if (mReader != null) {
                             line = mReader!!.readLine()
                         }
                     }
 
                     if (line.isNotEmpty()) {
                         //处理logcat   例子  11-19 05:14:33.225 20634 20634 D holmesye: onCreate: 大厦上发的是打发士大夫
-                        val patten = Pattern.compile("[D,E,I,V,W] ([a-zA-Z0-9]*)") //编译正则表达式
+                        val patten = Pattern.compile("[D,E,I,V,W] ([a-zA-Z0-9._-]*)") //编译正则表达式
                         val matcher: Matcher = patten.matcher(line) // 指定要匹配的字符串
                         if (matcher.find()) {
                             val tagAndType = matcher.group()
@@ -150,13 +163,16 @@ object LogcatHelperSingleThread {
                             if (tagAndTypeList.size == 2) {
                                 type = tagAndTypeList[0]
                                 tag = tagAndTypeList[1]
-                                content = line.split("$tag: ")[1]
-
+                                if(tag == TAG){
+                                    continue
+                                }
+                                //用tag分割
+                                content = line.replace(" ".toRegex(),"").split("$tag:")[1]
                                 val logTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").apply {
                                     timeZone = TimeZone.getTimeZone("Asia/Shanghai")
                                 }.format(Date())
                                 val logBean = LogBean(content, logTime, type, tag)
-                                println(logBean)
+//                                println(logBean)
                                 logList.add(logBean)
                             }
                         }
@@ -166,6 +182,7 @@ object LogcatHelperSingleThread {
 
             } catch (e: Exception) {
                 e.printStackTrace()
+                stopAll()
             } finally {
                 if (mReader != null) {
                     try {
@@ -176,6 +193,15 @@ object LogcatHelperSingleThread {
                 }
             }
         }
+
+        fun stop() {
+            mRunning = false
+        }
+    }
+
+    fun stopAll() {
+        logDumper?.stop()
+        mTaskScheduledThreadPool?.shutdown()
     }
 
 }

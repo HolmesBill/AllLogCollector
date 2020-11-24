@@ -1,8 +1,8 @@
 package com.holmesye.logcollector
 
 import android.app.Application
-import com.holmesye.logcollector.save.db.DefaultLogSaveInDB
-import com.holmesye.logcollector.save.net.DefaultLogSaveInNet
+import com.holmesye.logcollector.save.db.DefaultLogInDBTask
+import com.holmesye.logcollector.save.net.DefaultLogInNetTask
 
 /**
  * @author yejj
@@ -16,10 +16,10 @@ class App : Application() {
 //        LogcatHelper.getInstance().tagsFilter(mutableListOf("holmesye","MainActivity"))
 //        LogcatHelper.getInstance().start()
         LogcatHelperSingleThread.init(applicationContext)
-            .tagsFilter(mutableListOf("holmesye", "MainActivity"))
+//            .tagsFilter(mutableListOf("holmesye", "MainActivity"))
             .setOperations( mutableListOf(
-                DefaultLogSaveInDB(this),
-                DefaultLogSaveInNet(this)
+                DefaultLogInDBTask(this),
+                DefaultLogInNetTask(this)
             ))
             .start()
     }

@@ -2,7 +2,7 @@ package com.holmesye.logcollector.save.net
 
 import android.content.Context
 import com.holmesye.logcollector.LogBean
-import com.holmesye.logcollector.save.LogcatSaveHandler
+import com.holmesye.logcollector.save.LogcatHandlerTask
 import com.holmesye.logcollector.save.db.dao.LogDataBase
 import com.holmesye.logcollector.save.db.dao.LogEntity
 import retrofit2.Retrofit
@@ -14,7 +14,7 @@ import retrofit2.converter.gson.GsonConverterFactory
  * @date 2020/11/24
  * @Description :
  */
-class DefaultLogSaveInNet(private var mContext: Context) : LogcatSaveHandler {
+class DefaultLogInNetTask(private var mContext: Context) : LogcatHandlerTask {
 
     /**
      *
@@ -26,10 +26,12 @@ class DefaultLogSaveInNet(private var mContext: Context) : LogcatSaveHandler {
     override fun save(logcatList: MutableList<LogBean>) {
 
         val logDao = LogDataBase.getDataBase(mContext).logDao()
-        val selectByUploadStatus = logDao.selectByUploadStatus("0")
-        println(selectByUploadStatus)
+        val logList = logDao.selectByUploadStatus("0")
+        if (logList.isEmpty()) {
+            return
+        }
         val beanList: MutableList<com.holmesye.logcollector.save.net.LogBean> =
-            data2bean(selectByUploadStatus)
+            data2bean(logList)
 
         //上传
         val retrofit = Retrofit.Builder()
@@ -39,12 +41,10 @@ class DefaultLogSaveInNet(private var mContext: Context) : LogcatSaveHandler {
         val call = retrofit.create(Api::class.java).upload(LogUploadReq("111", beanList))
         //必须用同步的方式进行阻塞
         if (call.execute().body()?.code == "1") {
-            println("upload Success")
-            selectByUploadStatus.forEach {
+            logList.forEach {
                 it.upLoadStatus = "2"
-
             }
-            logDao.updateById(selectByUploadStatus)
+            logDao.updateById(logList)
         }
     }
 

@@ -3,6 +3,7 @@ package com.holmesye.logcollector
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,5 +22,11 @@ class MainActivity : AppCompatActivity() {
 //        }catch (e:ArithmeticException){
 //            e.printStackTrace()
 //        }
+
+        tvStop.setOnClickListener {
+
+
+
+        }
     }
 }

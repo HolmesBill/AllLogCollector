@@ -2,7 +2,7 @@ package com.holmesye.logcollector.save.db
 
 import android.content.Context
 import com.holmesye.logcollector.LogBean
-import com.holmesye.logcollector.save.LogcatSaveHandler
+import com.holmesye.logcollector.save.LogcatHandlerTask
 import com.holmesye.logcollector.save.db.dao.LogDataBase
 import com.holmesye.logcollector.save.db.dao.LogEntity
 
@@ -11,7 +11,7 @@ import com.holmesye.logcollector.save.db.dao.LogEntity
  * @date 2020/11/20
  * @Description : 默认的保存在数据库
  */
-class DefaultLogSaveInDB(private var mContext: Context) : LogcatSaveHandler {
+class DefaultLogInDBTask(private var mContext: Context) : LogcatHandlerTask {
 
     override fun save(logcatList: MutableList<LogBean>) {
         //用Room

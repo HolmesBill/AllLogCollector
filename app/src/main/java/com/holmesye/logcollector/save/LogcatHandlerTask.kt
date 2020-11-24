@@ -5,8 +5,8 @@ import com.holmesye.logcollector.LogBean
 /**
  * @author yejj
  * @date 2020/11/20
- * @Description :
+ * @Description : 处理logcat的任务类
  */
-interface LogcatSaveHandler {
-    fun save(logcatList:MutableList<LogBean>)
+interface LogcatHandlerTask {
+    fun save(logcatList: MutableList<LogBean>)
 }
