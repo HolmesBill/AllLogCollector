@@ -6,4 +6,4 @@ package com.holmesye.logcollector.save.net
  * @Description :
  */
 
-data class LogBean(var logContent: String?, var tag: String?, var time: String?, var type: String?)
+data class LogReqBody(var logContent: String?, var tag: String?, var time: String?, var type: String?)

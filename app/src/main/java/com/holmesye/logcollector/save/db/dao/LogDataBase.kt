@@ -20,7 +20,7 @@ abstract class LogDataBase : RoomDatabase() {
             return Room.databaseBuilder(
                 context.applicationContext,
                 LogDataBase::class.java,
-                "logDB"
+                "logDB.db"
             )
                 .fallbackToDestructiveMigration()//数据库更新时删除数据重新创建
                 .build()

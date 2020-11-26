@@ -11,6 +11,9 @@ interface LogDao {
     @Insert
     fun save(log: MutableList<LogEntity>)
 
+    @Insert
+    fun save(log: LogEntity)
+
     @Query("select * from log_DB where upLoadStatus = :upLoadStatus")
     fun selectByUploadStatus(upLoadStatus: String): MutableList<LogEntity>
 

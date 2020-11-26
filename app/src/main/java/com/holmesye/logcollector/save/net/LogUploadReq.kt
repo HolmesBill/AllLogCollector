@@ -7,5 +7,5 @@ package com.holmesye.logcollector.save.net
  */
 data class LogUploadReq(
     var userId: String? = null,
-    var logList: MutableList<LogBean> = mutableListOf()
+    var logList: MutableList<LogReqBody> = mutableListOf()
 )

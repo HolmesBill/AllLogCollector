@@ -1,12 +1,12 @@
-package com.holmesye.logcollector.save
+package com.holmesye.logcollector.baseTask
 
-import com.holmesye.logcollector.LogBean
+import com.holmesye.logcollector.bean.LogBean
 
 /**
  * @author yejj
  * @date 2020/11/20
  * @Description : 处理logcat的任务类
  */
-interface LogcatHandlerTask {
+interface BaseLogcatHandlerTask {
     fun save(logcatList: MutableList<LogBean>)
 }

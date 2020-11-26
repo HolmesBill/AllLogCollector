@@ -4,10 +4,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
 
-    companion object{
+    companion object {
         private const val TAG = "holmesye"
     }
 
@@ -17,15 +18,11 @@ class MainActivity : AppCompatActivity() {
 
         Log.d(TAG, "onCreate: test123")
         Log.e("MainActivity", "onCreate: 123test")
-//        try {
-//            var index = 1/0
-//        }catch (e:ArithmeticException){
-//            e.printStackTrace()
-//        }
+
+//        var index = 1 / 0
 
         tvStop.setOnClickListener {
-
-
+            var index = 1 / 0
 
         }
     }

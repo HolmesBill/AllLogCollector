@@ -1,9 +1,9 @@
-package com.holmesye.logcollector
+package com.holmesye.logcollector.handler
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
-import com.holmesye.logcollector.save.LogcatHandlerTask
+import com.holmesye.logcollector.baseTask.BaseLogcatHandlerTask
+import com.holmesye.logcollector.bean.LogBean
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -18,7 +18,7 @@ import java.util.regex.Pattern
  * @date 2020/11/19
  * @Description :
  */
-object LogcatHelperSingleThread {
+object LogCollector {
 
     private var mContext: Context? = null
     private var tags: List<String> = ArrayList()
@@ -27,26 +27,26 @@ object LogcatHelperSingleThread {
     private var logCollectingThreadPool: ThreadPoolExecutor? = null //线程池：只做日志收集
     private var mTaskScheduledThreadPool: ScheduledThreadPoolExecutor? = null //处理操作线程池
 
-    private var mTaskList: MutableList<LogcatHandlerTask> = mutableListOf()
+    private var mTaskListBase: MutableList<BaseLogcatHandlerTask> = mutableListOf()
 
     private var logDumper: LogDumper? = null
 
-    private var TAG = "logcat"
+    public var TAG = "logcat"
 
     private var isTaskRunning = true
 
-    fun setOperations(operations: MutableList<LogcatHandlerTask>): LogcatHelperSingleThread {
-        this.mTaskList = operations
+    fun setOperations(taskList: MutableList<BaseLogcatHandlerTask>): LogCollector {
+        this.mTaskListBase = taskList
         return this
     }
 
-    fun init(context: Context?): LogcatHelperSingleThread {
+    fun init(context: Context?): LogCollector {
         mContext = context
         initThreadPool()
         return this
     }
 
-    fun tagsFilter(tags: List<String>): LogcatHelperSingleThread {
+    fun tagsFilter(tags: List<String>): LogCollector {
         this.tags = tags
         return this
     }
@@ -76,12 +76,12 @@ object LogcatHelperSingleThread {
     }
 
     private fun handlerLogcat() {
-        if (mTaskList.isEmpty()) {
+        if (mTaskListBase.isEmpty()) {
             return
         }
 
         mTaskScheduledThreadPool?.scheduleWithFixedDelay(
-            HandlerDumper(mTaskList),
+            HandlerDumper(mTaskListBase),
             1000,
             1000,
             TimeUnit.MILLISECONDS
@@ -110,10 +110,10 @@ object LogcatHelperSingleThread {
         }
     }
 
-    class HandlerDumper(private var operationList: MutableList<LogcatHandlerTask>) : Runnable {
+    class HandlerDumper(private var operationList: MutableList<BaseLogcatHandlerTask>) : Runnable {
         override fun run() {
 
-            if(!isTaskRunning){
+            if (!isTaskRunning) {
                 return
             }
 
@@ -163,11 +163,12 @@ object LogcatHelperSingleThread {
                             if (tagAndTypeList.size == 2) {
                                 type = tagAndTypeList[0]
                                 tag = tagAndTypeList[1]
-                                if(tag == TAG){
+                                //把自己TAG相关的日志去掉
+                                if (tag == TAG) {
                                     continue
                                 }
                                 //用tag分割
-                                content = line.replace(" ".toRegex(),"").split("$tag:")[1]
+                                content = line.replace(" ".toRegex(), "").split("$tag:")[1]
                                 val logTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").apply {
                                     timeZone = TimeZone.getTimeZone("Asia/Shanghai")
                                 }.format(Date())

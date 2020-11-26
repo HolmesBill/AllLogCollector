@@ -1,4 +1,4 @@
-package com.holmesye.logcollector;
+package com.holmesye.logcollector.bean;
 
 /**
  * @author yejj
