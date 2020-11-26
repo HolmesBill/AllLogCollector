@@ -1,9 +1,11 @@
 package com.holmesye.logcollector.bean;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author yejj
  * @date 2020/11/17
- * @Description : log 的bean类
+ * @Description: log 的bean类
  */
 public class LogBean {
     public LogBean(String logContent, String logTime, String logType, String tag) {
@@ -50,6 +52,7 @@ public class LogBean {
         this.logTime = logTime;
     }
 
+    @NotNull
     @Override
     public String toString() {
         return "LogBean{" +

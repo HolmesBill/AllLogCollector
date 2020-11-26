@@ -4,12 +4,15 @@ import android.annotation.SuppressLint
 import android.content.Context
 import com.holmesye.logcollector.baseTask.BaseLogcatHandlerTask
 import com.holmesye.logcollector.bean.LogBean
+import com.holmesye.logcollector.utils.TimeUtils
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
-import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -21,7 +24,7 @@ import java.util.regex.Pattern
 object LogCollector {
 
     private var mContext: Context? = null
-    private var tags: List<String> = ArrayList()
+    private var matchTagList: List<String> = ArrayList()
     private var logList = mutableListOf<LogBean>()
 
     private var logCollectingThreadPool: ThreadPoolExecutor? = null //线程池：只做日志收集
@@ -31,12 +34,28 @@ object LogCollector {
 
     private var logDumper: LogDumper? = null
 
-    public var TAG = "logcat"
+    var TAG = "logcat"
+
+    private var withoutMatchTagList = mutableListOf(TAG)
 
     private var isTaskRunning = true
 
+    private var taskDelay = 1000L
+    private var taskDelayTimeUnit = TimeUnit.MILLISECONDS
+
     fun setOperations(taskList: MutableList<BaseLogcatHandlerTask>): LogCollector {
         this.mTaskListBase = taskList
+        return this
+    }
+
+    fun setWithoutMatchTags(tags: MutableList<String>): LogCollector {
+        withoutMatchTagList.addAll(tags)
+        return this
+    }
+
+    fun setTaskDelay(timeDelay: Long, timeDelayTimeUnit: TimeUnit): LogCollector {
+        this.taskDelay = timeDelay
+        this.taskDelayTimeUnit = timeDelayTimeUnit
         return this
     }
 
@@ -47,12 +66,12 @@ object LogCollector {
     }
 
     fun tagsFilter(tags: List<String>): LogCollector {
-        this.tags = tags
+        this.matchTagList = tags
         return this
     }
 
     fun start() {
-        logDumper = LogDumper(initCmd(tags))
+        logDumper = LogDumper(initCmd(matchTagList))
 
         //每次启动都清除之前的日志
         cleanLog()
@@ -83,8 +102,8 @@ object LogCollector {
         mTaskScheduledThreadPool?.scheduleWithFixedDelay(
             HandlerDumper(mTaskListBase),
             1000,
-            1000,
-            TimeUnit.MILLISECONDS
+            taskDelay,
+            taskDelayTimeUnit
         )
     }
 
@@ -116,15 +135,14 @@ object LogCollector {
             if (!isTaskRunning) {
                 return
             }
-
-            synchronized(logList) {
 //                println("开始执行任务集")
-                val indexList = mutableListOf<LogBean>()
+            val indexList = mutableListOf<LogBean>()
+            synchronized(logList) {
                 indexList.addAll(logList)
                 logList.clear()
-                operationList.forEach {
-                    it.save(indexList)
-                }
+            }
+            operationList.forEach {
+                it.save(indexList)
             }
         }
     }
@@ -136,7 +154,6 @@ object LogCollector {
         private var mRunning = true
         private var mReader: BufferedReader? = null
 
-        @SuppressLint("SimpleDateFormat")
         override fun run() {
             var line = ""
             try {
@@ -152,14 +169,15 @@ object LogCollector {
 
                     if (line.isNotEmpty()) {
                         //处理logcat   例子  11-19 05:14:33.225 20634 20634 D holmesye: onCreate: 大厦上发的是打发士大夫
-                        val patten = Pattern.compile("[D,E,I,V,W] ([a-zA-Z0-9._-]*)") //编译正则表达式
-                        val matcher: Matcher = patten.matcher(line) // 指定要匹配的字符串
-                        if (matcher.find()) {
-                            val tagAndType = matcher.group()
+                        val lineByPattern: Matcher =
+                            Pattern.compile("[D,E,I,V,W] ([a-zA-Z0-9._-]*)")
+                                .matcher(line) // 指定要匹配的字符串
+                        if (lineByPattern.find()) {
+                            val tagAndType = lineByPattern.group()
                             val tagAndTypeList = tagAndType.split(" ")
-                            var tag = ""
-                            var type = ""
-                            var content = ""
+                            var tag: String
+                            var type: String
+                            var content: String
                             if (tagAndTypeList.size == 2) {
                                 type = tagAndTypeList[0]
                                 tag = tagAndTypeList[1]
@@ -169,9 +187,11 @@ object LogCollector {
                                 }
                                 //用tag分割
                                 content = line.replace(" ".toRegex(), "").split("$tag:")[1]
-                                val logTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").apply {
-                                    timeZone = TimeZone.getTimeZone("Asia/Shanghai")
-                                }.format(Date())
+                                if (content.isEmpty()) {
+                                    //如果content为空 有可能分割有问题，也有可能content就是空的，直接下一行
+                                    continue
+                                }
+                                val logTime = TimeUtils.getNowTime()
                                 val logBean = LogBean(content, logTime, type, tag)
 //                                println(logBean)
                                 logList.add(logBean)
@@ -202,8 +222,8 @@ object LogCollector {
 
     fun stopAll() {
         logDumper?.stop()
+        isTaskRunning = false
         mTaskScheduledThreadPool?.shutdown()
     }
 
 }
-
