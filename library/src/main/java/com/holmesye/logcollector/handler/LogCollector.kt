@@ -34,7 +34,7 @@ object LogCollector {
 
     private var logDumper: LogDumper? = null
 
-    var TAG = "logcat"
+    const val TAG = "logcat"
     private var withoutMatchTagList = mutableListOf(TAG)
 
     private var isTaskRunning = true
