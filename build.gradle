@@ -21,15 +21,3 @@ allprojects {
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
-
-publish {
-    userOrg = "a526569615"
-    groupId = 'com.holmesye.logCollector'
-    artifactId = "LogCollector"
-    publishVersion = "1.0.0"
-    desc = "collect Android app's log"
-    website = "https://github.com/HolmesBill/AllLogCollector"
-}
