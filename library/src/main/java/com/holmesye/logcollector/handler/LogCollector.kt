@@ -2,6 +2,7 @@ package com.holmesye.logcollector.handler
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import com.holmesye.logcollector.baseTask.BaseLogcatHandlerTask
 import com.holmesye.logcollector.bean.LogBean
 import com.holmesye.logcollector.utils.TimeUtils
@@ -22,7 +23,6 @@ import java.util.regex.Pattern
  * @Description :
  */
 object LogCollector {
-
     private var mContext: Context? = null
     private var matchTagList: List<String> = ArrayList()
     private var logList = mutableListOf<LogBean>()
@@ -35,11 +35,9 @@ object LogCollector {
     private var logDumper: LogDumper? = null
 
     var TAG = "logcat"
-
     private var withoutMatchTagList = mutableListOf(TAG)
 
     private var isTaskRunning = true
-
     private var taskDelay = 1000L
     private var taskDelayTimeUnit = TimeUnit.MILLISECONDS
 
@@ -141,8 +139,10 @@ object LogCollector {
                 indexList.addAll(logList)
                 logList.clear()
             }
-            operationList.forEach {
+            operationList.forEachIndexed {index,it->
+                Log.d(TAG, "-------------------------开始任务$index ------------------------------")
                 it.save(indexList)
+                Log.d(TAG, "-------------------------任务$index 结束------------------------------")
             }
         }
     }
