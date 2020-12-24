@@ -23,9 +23,8 @@ implementation 'com.github.HolmesBill:AllLogCollector:1.1'
 收集所有日志，有用的无用的都有
 
 ```kotlin
- LogCollector.INSTANCE
-             .init(this)
-              .start();
+ LogCollector.init(this)
+             .start();
 ```
 
 ## 2.2 添加Tag过滤
