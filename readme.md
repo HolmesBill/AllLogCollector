@@ -9,7 +9,7 @@ maven { url 'https://jitpack.io' }
 在项目目录下build.gradle的dependencies里面添加
 
 ```groovy
-implementation 'com.github.HolmesBill:AllLogCollector:1.1'
+implementation 'com.github.HolmesBill:AllLogCollector:1.2'
 ```
 
 
